@@ -12,8 +12,8 @@
 var md5 = require('md5');
 // console.log(md5('message')," ","78e731027d8fd50ed642340b7c9a63b3"); // "78e731027d8fd50ed642340b7c9a63b3"
 //declarations
-var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
-var phrase = "young lad";
+var phraseHash = "4624d200580677270a54ccff86b9610e";
+var phrase = "poultry outwits ants";
 // "poultry outwits ants" => ???? ("4624d200580677270a54ccff86b9610e");
 // "young lad" -> "an old guy" ("e38510d49aac47d5cb7d47155b9bce6f");
 // "nerdy age" -> "green day" ("9f963d602836426c140a637e01f169ac"); //wordlist does not contain 'green'!!!!
