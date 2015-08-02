@@ -12,16 +12,16 @@
 var md5 = require('md5');
 // console.log(md5('message')," ","78e731027d8fd50ed642340b7c9a63b3"); // "78e731027d8fd50ed642340b7c9a63b3"
 //declarations
-var phraseHash = "9f963d602836426c140a637e01f169ac";
-var phrase = "nerdy age";
+var phraseHash = "4624d200580677270a54ccff86b9610e";
+var phrase = "poultry outwits ants";
 // "poultry outwits ants" => ???? ("4624d200580677270a54ccff86b9610e");
 // "young lad" -> "an old guy" ("e38510d49aac47d5cb7d47155b9bce6f");
-// "nerdy age" -> "green day" ("9f963d602836426c140a637e01f169ac");
+// "nerdy age" -> "green day" ("9f963d602836426c140a637e01f169ac"); //wordlist does not contain 'green'!!!!
 // "elvis" -> "lives" ("309b5d4f7785cdf69a212603f95efcc5"); 
 // "disc" -> "is cd" ("292d519bfbffa94538f255bca6a3bff6");
 var nonWordSingleCharacters = "bcdefghjklmnopqrstuvwxyz";
 var letters = sortChars(phrase);
-console.log("letters",letters);	
+console.log("phrase",phrase);	
 var wordlist = [], vocabulary = [];
 //import wordlist "./wordlist"
 fs = require('fs');
@@ -31,23 +31,25 @@ fs.readFile('./wordlist', 'utf8', function (err, data) {
 	}
 	//clean wordlist of duplicates, non-words letters and words with non anagram characters
 	wordlist = removeOnlyTheseLetters(removeDuplicates(data.split('\n')),nonWordSingleCharacters);
+	//pop last line with empty string
 	if (wordlist[wordlist.length-1]==="") wordlist.pop();
-	console.log("wordlist word count:",wordlist.length);
+	// console.log("wordlist word count:",wordlist.length);
 	vocabulary = removeWordsWithNonAnagramChars(wordlist,phrase);
-	console.log("vocabulary word count:",vocabulary.length);
+	// console.log("vocabulary word count:",vocabulary.length);
 	//build tries of all word permutations
 	var tempArray = vocabulary.slice(), anagramsTriesArray = [];
 	tempArray.forEach(function(root,index,array){
 		var tempTrie = makeNode(root,removeCharactersFromString(root,letters),array.slice());
-		console.log("tempTrie:",tempTrie);
+		// console.log("tempTrie:",JSON.stringify(tempTrie));
 		anagramsTriesArray.push(tempTrie);
 	});
 
-	console.log("anagramsTriesArray.length: ",anagramsTriesArray.length);
+	// console.log("anagramsTriesArray.length: ",anagramsTriesArray.length);
 	// console.log("anagramsTriesArray: ",JSON.stringify(anagramsTriesArray));
 	// traverse anagramTriesArray to create anagram phrases and test against MD5 hash
 	tempArray = []; 
 	var count = 0;
+/*	
 	while ( anagramsTriesArray.length>0 ){
 		// console.log("while loop:",count);
 		count++;
@@ -60,9 +62,15 @@ fs.readFile('./wordlist', 'utf8', function (err, data) {
 			console.log("md5 match: ",tempPhrase);
 			return tempPhrase;
 		}
+	}*/
+
+	while ( anagramsTriesArray.length>0 ) {
+		count++;
+		var tempNode = anagramsTriesArray.shift();
+		traverseTrieNodes(tempNode,"",tempArray,phraseHash);
 	}
 
-	console.log("anagramsTriesArray",tempArray);
+	// console.log("anagramsTriesArray",tempArray);
 });
 
 //test to see if MD5 matches
@@ -70,13 +78,34 @@ function checkMD5(phrase,MD5Checksum){
 	return (md5(phrase)===MD5Checksum);
 }
 
-//traverse Trie Nodes
-function traverseTrieNodes(node){
+//traverse Trie Nodes returns everything
+function traverseTrieNodes(node,newPhrase,phraseArray,MD5Checksum){
 	// console.log("node: ",node.value);
-	//check node.children, if node.children > 0 consume top node and return
+	newPhrase += node.value + " ";
+
+	if ( node.remainingChars === "" ) { // node.children.length <= 0 && 
+		//check newPhrase.trim MD5 for match
+		newPhrase = newPhrase.trim();
+		if (  checkMD5(newPhrase,MD5Checksum) ) console.log("MD5 checksum matched: ",newPhrase);
+		phraseArray.push(newPhrase);
+	} else if ( node.children.length <= 0 ) {
+		// do nothing
+	} else {
+		while ( node.children.length > 0 ) {
+			var tempNode = node.children.shift();
+			traverseTrieNodes(tempNode,newPhrase,phraseArray,MD5Checksum);
+		}
+	}
+}
+
+//traverse Trie Nodes and return all phrases (does not work as intended)
+function traverseTrieNodesReturnAll(node){
+	// console.log("node: ",node.value);
+	//if node.children <= 0 then return value
 	if ( node.children.length <= 0 ) {
 		return node.value;
 	}
+	// if node.children > 0 consume top node, return node.value plus recursive results
 	var tempNode = {};
 	tempNode = node.children.shift();
 	return node.value += " " + traverseTrieNodes(tempNode);
