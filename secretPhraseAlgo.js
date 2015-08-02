@@ -48,12 +48,12 @@ fs.readFile('./wordlist', 'utf8', function (err, data) {
 										removeCharactersFromString(root,letters),
 										array.slice(),
 										"",
-										phraseHash,
-										anagramsArray
+										phraseHash
+										// ,anagramsArray
 									);
 	});
 
-	console.log("anagramsArray count: ",anagramsArray.length);
+	// console.log("anagramsArray count: ",anagramsArray.length);
 	// console.log("anagramsArray: ",anagramsArray);
 
 /*
@@ -128,7 +128,7 @@ function makeAndTestNode(word,ltrs,list,newPhrase,MD5Checksum,anagramsArray){
 		newPhrase = newPhrase.trim();
 		// console.log("makeAndTestNode newPhrase",newPhrase);
 		if (  checkMD5(newPhrase,MD5Checksum) ) console.log("makeAndTestNode MD5 checksum matched: ",newPhrase);
-		anagramsArray.push(newPhrase);
+		// anagramsArray.push(newPhrase);
 		// console.log("return node because node.remainingChars.length:",node.remainingChars.length);
 		node.children = [];
 		return node;
