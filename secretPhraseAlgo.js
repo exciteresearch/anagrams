@@ -6,22 +6,27 @@
 // do I remove contractions like I'm if there is no apostrophe in the original? Do apostrophes appear magically like spaces?
 //learn about tries which are a datastructure
 //http://stackoverflow.com/questions/55210/algorithm-to-generate-anagrams
-// "poultry outwits ants" => ???? ("4624d200580677270a54ccff86b9610e");
+// console.log(md5('message')," ","78e731027d8fd50ed642340b7c9a63b3"); // "78e731027d8fd50ed642340b7c9a63b3"
 // "young lad" -> "an old guy" ("e38510d49aac47d5cb7d47155b9bce6f");
 // "nerdy age" -> "green day" ("9f963d602836426c140a637e01f169ac"); //wordlist does not contain 'green'!!!!
 // "elvis" -> "lives" ("309b5d4f7785cdf69a212603f95efcc5"); 
 // "disc" -> "is cd" ("292d519bfbffa94538f255bca6a3bff6");
-// console.log(md5('message')," ","78e731027d8fd50ed642340b7c9a63b3"); // "78e731027d8fd50ed642340b7c9a63b3"
+// "poultry outwits ants" => ???? ("4624d200580677270a54ccff86b9610e"); 18 characters
+// Current Bug Javascript FATAL ERROR: CALL_AND_RETRY_LAST allocation failed - process out of memory
 
 //imports
 var md5 = require('md5');
 //declarations
-var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
-var phrase = "young lad";
+var phraseHash = "4624d200580677270a54ccff86b9610e";
+var phrase = "poultry outwits ants";
+// var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
+// var phrase = "young lad";
 var nonWordSingleCharacters = "bcdefghjklmnopqrstuvwxyz";
 var letters = sortChars(phrase);
-console.log("phrase",phrase);	
+console.log("phrase: ",phrase);
 var wordlist = [], vocabulary = [];
+//time anagram / tries generation
+var startTimeInMs = Date.now();
 //import wordlist "./wordlist"
 fs = require('fs');
 fs.readFile('./wordlist', 'utf8', function (err, data) {
@@ -48,12 +53,14 @@ fs.readFile('./wordlist', 'utf8', function (err, data) {
 										array.slice(),
 										"",
 										phraseHash
-										// ,anagramsArray
+										,anagramsArray
 									);
+		// push anagram to tries array
+		// console.log((Date.now() - startTimeInMs )," tempTrie: ", JSON.stringify(tempTrie));
 	});
 
-	// console.log("anagramsArray count: ",anagramsArray.length);
-	// console.log("anagramsArray: ",anagramsArray);
+	console.log("anagramsArray count: ",anagramsArray.length);
+	console.log("anagramsArray: ",anagramsArray);
 /*
 	tempArray = []; 
 	var count = 0;
@@ -125,9 +132,10 @@ function makeAndTestNode(word,ltrs,list,newPhrase,MD5Checksum,anagramsArray){
 	if(node.remainingChars == "") {
 		newPhrase = newPhrase.trim();
 		// console.log("makeAndTestNode newPhrase",newPhrase);
-		if (  checkMD5(newPhrase,MD5Checksum) ) console.log("makeAndTestNode MD5 checksum matched: ",newPhrase);
+		if (  checkMD5(newPhrase,MD5Checksum) ) console.log((Date.now() - startTimeInMs )," makeAndTestNode MD5 checksum matched: ",newPhrase);
 		// anagramsArray.push(newPhrase);
 		// console.log("return node because node.remainingChars.length:",node.remainingChars.length);
+		console.log((Date.now() - startTimeInMs )," newPhrase: ", newPhrase);
 		node.children = [];
 		return node;
 	} else {
