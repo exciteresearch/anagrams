@@ -4,65 +4,73 @@
 // are the number of spaces limited to the original 2 or unlimited spaces?
 // <!-- Additional hint 2: Spaces are NOT part of an anagram. But you already read that on Wikipedia, right? -->
 // do I remove contractions like I'm if there is no apostrophe in the original? Do apostrophes appear magically like spaces?
-
 //learn about tries which are a datastructure
 //http://stackoverflow.com/questions/55210/algorithm-to-generate-anagrams
+// console.log(md5('message')," ","78e731027d8fd50ed642340b7c9a63b3"); // "78e731027d8fd50ed642340b7c9a63b3"
+// "young lad" -> "an old guy" ("e38510d49aac47d5cb7d47155b9bce6f");
+// "nerdy age" -> "green day" ("9f963d602836426c140a637e01f169ac"); //wordlist does not contain 'green'!!!!
+// "elvis" -> "lives" ("309b5d4f7785cdf69a212603f95efcc5"); 
+// "disc" -> "is cd" ("292d519bfbffa94538f255bca6a3bff6");
+// "poultry outwits ants" => ???? ("4624d200580677270a54ccff86b9610e"); 18 characters
+// Current Bug Javascript FATAL ERROR: CALL_AND_RETRY_LAST allocation failed - process out of memory
 
 //imports
 var md5 = require('md5');
-// console.log(md5('message')," ","78e731027d8fd50ed642340b7c9a63b3"); // "78e731027d8fd50ed642340b7c9a63b3"
 //declarations
-var phraseHash = "9f963d602836426c140a637e01f169ac";
-var phrase = "nerdy age";
-// "poultry outwits ants" => ???? ("4624d200580677270a54ccff86b9610e");
-// "young lad" -> "an old guy" ("e38510d49aac47d5cb7d47155b9bce6f");
-// "nerdy age" -> "green day" ("9f963d602836426c140a637e01f169ac");
-// "elvis" -> "lives" ("309b5d4f7785cdf69a212603f95efcc5"); 
-// "disc" -> "is cd" ("292d519bfbffa94538f255bca6a3bff6");
+var phraseHash = "4624d200580677270a54ccff86b9610e";
+var phrase = "poultry outwits ants";
+// var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
+// var phrase = "young lad";
 var nonWordSingleCharacters = "bcdefghjklmnopqrstuvwxyz";
 var letters = sortChars(phrase);
-console.log("letters",letters);	
+console.log("phrase: ",phrase);
 var wordlist = [], vocabulary = [];
+//time anagram / tries generation
+var startTimeInMs = Date.now();
 //import wordlist "./wordlist"
 fs = require('fs');
 fs.readFile('./wordlist', 'utf8', function (err, data) {
+	// console log fs error
 	if (err) {
 		return console.log("fs error",err);
 	}
+
 	//clean wordlist of duplicates, non-words letters and words with non anagram characters
 	wordlist = removeOnlyTheseLetters(removeDuplicates(data.split('\n')),nonWordSingleCharacters);
+
+	//pop last line with empty string
 	if (wordlist[wordlist.length-1]==="") wordlist.pop();
-	console.log("wordlist word count:",wordlist.length);
+
 	vocabulary = removeWordsWithNonAnagramChars(wordlist,phrase);
-	console.log("vocabulary word count:",vocabulary.length);
+
 	//build tries of all word permutations
-	var tempArray = vocabulary.slice(), anagramsTriesArray = [];
+	var tempArray = vocabulary.slice(), anagramsTriesArray = [], anagramsArray = [];
 	tempArray.forEach(function(root,index,array){
-		var tempTrie = makeNode(root,removeCharactersFromString(root,letters),array.slice());
-		console.log("tempTrie:",tempTrie);
-		anagramsTriesArray.push(tempTrie);
+		// make anagrams tries array and test if phrase is anagram and if it matches the MD5Checksum
+		var tempTrie = makeAndTestNode(
+										root,
+										removeCharactersFromString(root,letters),
+										array.slice(),
+										"",
+										phraseHash
+										,anagramsArray
+									);
+		// push anagram to tries array
+		// console.log((Date.now() - startTimeInMs )," tempTrie: ", JSON.stringify(tempTrie));
 	});
 
-	console.log("anagramsTriesArray.length: ",anagramsTriesArray.length);
-	// console.log("anagramsTriesArray: ",JSON.stringify(anagramsTriesArray));
-	// traverse anagramTriesArray to create anagram phrases and test against MD5 hash
+	console.log("anagramsArray count: ",anagramsArray.length);
+	console.log("anagramsArray: ",anagramsArray);
+/*
 	tempArray = []; 
 	var count = 0;
-	while ( anagramsTriesArray.length>0 ){
-		// console.log("while loop:",count);
+	while ( anagramsTriesArray.length>0 ) {
 		count++;
 		var tempNode = anagramsTriesArray.shift();
-		// console.log("tempNode",tempNode.value);
-		var tempPhrase = traverseTrieNodes(tempNode);
-		// console.log("tempPhrase: ",tempPhrase);
-		tempArray.push(tempPhrase);
-		if(checkMD5(tempPhrase,phraseHash)) {
-			console.log("md5 match: ",tempPhrase);
-			return tempPhrase;
-		}
+		traverseTrieNodes(tempNode,"",tempArray,phraseHash);
 	}
+*/
 
-	console.log("anagramsTriesArray",tempArray);
 });
 
 //test to see if MD5 matches
@@ -70,13 +78,34 @@ function checkMD5(phrase,MD5Checksum){
 	return (md5(phrase)===MD5Checksum);
 }
 
-//traverse Trie Nodes
-function traverseTrieNodes(node){
+//traverse Trie Nodes returns everything
+function traverseTrieNodes(node,newPhrase,phraseArray,MD5Checksum){
 	// console.log("node: ",node.value);
-	//check node.children, if node.children > 0 consume top node and return
+	newPhrase += node.value + " ";
+
+	if ( node.remainingChars === "" ) { // node.children.length <= 0 && 
+		//check newPhrase.trim MD5 for match
+		newPhrase = newPhrase.trim();
+		if (  checkMD5(newPhrase,MD5Checksum) ) console.log("MD5 checksum matched: ",newPhrase);
+		phraseArray.push(newPhrase);
+	} else if ( node.children.length <= 0 ) {
+		// do nothing
+	} else {
+		while ( node.children.length > 0 ) {
+			var tempNode = node.children.shift();
+			traverseTrieNodes(tempNode,newPhrase,phraseArray,MD5Checksum);
+		}
+	}
+}
+
+//traverse Trie Nodes and return all phrases (does not work as intended)
+function traverseTrieNodesReturnAll(node){
+	// console.log("node: ",node.value);
+	//if node.children <= 0 then return value
 	if ( node.children.length <= 0 ) {
 		return node.value;
 	}
+	// if node.children > 0 consume top node, return node.value plus recursive results
 	var tempNode = {};
 	tempNode = node.children.shift();
 	return node.value += " " + traverseTrieNodes(tempNode);
@@ -87,6 +116,36 @@ var Node = function () {
   this.value = null;
   this.remainingChars = null;
   this.children = [];
+}
+
+//generate all permutations of the phrase by returing a trie of permitted words
+function makeAndTestNode(word,ltrs,list,newPhrase,MD5Checksum,anagramsArray){
+	// console.log("makeNode str: ",str," ltrs: ",ltrs," list.length:",list.length);
+	// console.log(list);
+	var node = new Node();
+	node.value = word;
+	node.remainingChars = removeCharactersFromString(word,ltrs);
+	newPhrase += word + " ";
+
+	// console.log("node.remainingChars ",node.remainingChars);
+	// if(node.remainingChars.length<=0) {
+	if(node.remainingChars == "") {
+		newPhrase = newPhrase.trim();
+		// console.log("makeAndTestNode newPhrase",newPhrase);
+		if (  checkMD5(newPhrase,MD5Checksum) ) console.log((Date.now() - startTimeInMs )," makeAndTestNode MD5 checksum matched: ",newPhrase);
+		// anagramsArray.push(newPhrase);
+		// console.log("return node because node.remainingChars.length:",node.remainingChars.length);
+		console.log((Date.now() - startTimeInMs )," newPhrase: ", newPhrase);
+		node.children = [];
+		return node;
+	} else {
+		tempList = removeWordsWithNonAnagramChars(list,node.remainingChars);
+		tempList.forEach(function(root,index,array){
+			// console.log("anagramTrieArray.forEach root:",root);
+			node.children.push(makeAndTestNode(root,node.remainingChars,array.slice(),newPhrase,MD5Checksum,anagramsArray));
+		});
+		return node;
+	}
 }
 
 //generate all permutations of the phrase by returing a trie of permitted words
@@ -111,15 +170,18 @@ function makeNode(word,ltrs,list){
 	}
 }
 
+
 //removes one character from the string or returns original string
 function removeOneCharFromString(str,character){
 	str = str.split("");
 	for (var i = 0; i < str.length; i++) {
 		if ( str[i] === character ) {
 			str.splice(i,1);
+			// console.log("removeOneCharFromString return:",str.join(""));
 			return str.join("");
 		}
 	}
+	// console.log("removeOneCharFromString return:",str.join(""));
 	return str.join("");
 }
 
