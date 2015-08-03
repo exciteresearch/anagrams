@@ -4,21 +4,20 @@
 // are the number of spaces limited to the original 2 or unlimited spaces?
 // <!-- Additional hint 2: Spaces are NOT part of an anagram. But you already read that on Wikipedia, right? -->
 // do I remove contractions like I'm if there is no apostrophe in the original? Do apostrophes appear magically like spaces?
-
 //learn about tries which are a datastructure
 //http://stackoverflow.com/questions/55210/algorithm-to-generate-anagrams
-
-//imports
-var md5 = require('md5');
-// console.log(md5('message')," ","78e731027d8fd50ed642340b7c9a63b3"); // "78e731027d8fd50ed642340b7c9a63b3"
-//declarations
-var phraseHash = "4624d200580677270a54ccff86b9610e";
-var phrase = "poultry outwits ants";
 // "poultry outwits ants" => ???? ("4624d200580677270a54ccff86b9610e");
 // "young lad" -> "an old guy" ("e38510d49aac47d5cb7d47155b9bce6f");
 // "nerdy age" -> "green day" ("9f963d602836426c140a637e01f169ac"); //wordlist does not contain 'green'!!!!
 // "elvis" -> "lives" ("309b5d4f7785cdf69a212603f95efcc5"); 
 // "disc" -> "is cd" ("292d519bfbffa94538f255bca6a3bff6");
+// console.log(md5('message')," ","78e731027d8fd50ed642340b7c9a63b3"); // "78e731027d8fd50ed642340b7c9a63b3"
+
+//imports
+var md5 = require('md5');
+//declarations
+var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
+var phrase = "young lad";
 var nonWordSingleCharacters = "bcdefghjklmnopqrstuvwxyz";
 var letters = sortChars(phrase);
 console.log("phrase",phrase);	
@@ -55,7 +54,6 @@ fs.readFile('./wordlist', 'utf8', function (err, data) {
 
 	// console.log("anagramsArray count: ",anagramsArray.length);
 	// console.log("anagramsArray: ",anagramsArray);
-
 /*
 	tempArray = []; 
 	var count = 0;
