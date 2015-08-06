@@ -17,10 +17,10 @@
 //imports
 var md5 = require('md5');
 //declarations
-var phraseHash = "4624d200580677270a54ccff86b9610e";
-var phrase = "poultry outwits ants";
-// var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
-// var phrase = "young lad";
+// var phraseHash = "4624d200580677270a54ccff86b9610e";
+// var phrase = "poultry outwits ants";
+var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
+var phrase = "young lad";
 var nonWordSingleCharacters = "bcdefghjklmnopqrstuvwxyz";
 var letters = sortChars(phrase);
 console.log("phrase: ",phrase);
