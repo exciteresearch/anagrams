@@ -42,7 +42,8 @@ fs.readFile('./wordlist', 'utf8', function (err, data) {
 	if (wordlist[wordlist.length-1]==="") wordlist.pop();
 
 	vocabulary = removeWordsWithNonAnagramChars(wordlist,phrase);
-
+	console.log("parsed vocabulary: ",vocabulary.length);
+	console.log("vocabulary: ",vocabulary);
 	//build tries of all word permutations
 	var tempArray = vocabulary.slice(), anagramsTriesArray = [], anagramsArray = [];
 	tempArray.forEach(function(root,index,array){
@@ -72,6 +73,86 @@ fs.readFile('./wordlist', 'utf8', function (err, data) {
 */
 
 });
+
+//prepare regex /[^ailnoprstuwy]/g from letters 'ailnooprssttttuuwy'
+function regEx(ltrs){
+	var arr = ltrs.split("");
+	var str = "";
+	arr.reduce(function(prev,curr,index,array){
+		if(prev!==curr) str += array[index];
+		return curr;
+	},"");
+	return new RegExp("^[" + str + "]+$");
+}
+
+//return an object with keys of the word and it's letters count
+function stringInventory(str){
+	var result = { s: str , i: {} };
+	str = sortChars(str);
+	str.split("").forEach(function(el,index,array){
+		result.i[el] = str.match(new RegExp(el, "g") || []).length;
+	});
+	return result;
+}
+
+//create an array of all anagram words from the string
+//reduce vocabulary by removing words with illegal letters or too many letters
+function removeWordsWithNonAnagramChars(list, str){
+	var vocab = [], 
+		chars = sortChars(str),
+		charsObj = stringInventory(chars);
+	var allowedCharsArray = removeDuplicates(chars.split(""));
+
+	list.forEach(function(vocabWord,index,listArray){
+		//remove carraige return from each vocabWord
+		vocabWord = vocabWord.slice(0,vocabWord.length-1);
+		//if word has only allowedChars <-- do this fist for speed
+		if(vocabWord.match(regEx(chars))) {	
+			//if word has no more than allowable characters.
+			var vocabWordObj = stringInventory(vocabWord);
+			if(subsetOf(charsObj.i,vocabWordObj.i)){
+				// console.log("vocab.push(",vocabWordObj,")")
+				vocab.push(vocabWord);
+			}			
+		}		
+	});
+	// console.log("vocab count:",vocab.length)
+	return vocab;
+}
+
+//compares keys of string's inventory to set's inventory
+//returns false if key inventory is greater
+function subsetOf(set,str){
+	for(var key in str){
+		if ( str[key] > set[key] ) return false;
+	}
+	return true;
+}
+
+//removes characters from the string on at a time or returns original string
+function removeCharactersFromString(characters,str){
+	console.log("removeCharactersFromString str:",str,"characters",characters);
+	characters = characters.split("");
+	for (var i = 0; i < characters.length; i++) {
+		str = removeOneCharFromString(str,characters[i]);
+		console.log("removeCharactersFromString return:",str);
+	}
+	return str;
+}
+
+//removes one character from the string or returns original string
+function removeOneCharFromString(str,character){
+	str = str.split("");
+	for (var i = 0; i < str.length; i++) {
+		if ( str[i] === character ) {
+			str.splice(i,1);
+			console.log("removeOneCharFromString return:",str.join(""));
+			return str.join("");
+		}
+	}
+	console.log("removeOneCharFromString return:",str.join(""));
+	return str.join("");
+}
 
 //test to see if MD5 matches
 function checkMD5(phrase,MD5Checksum){
@@ -170,32 +251,6 @@ function makeNode(word,ltrs,list){
 	}
 }
 
-
-//removes one character from the string or returns original string
-function removeOneCharFromString(str,character){
-	str = str.split("");
-	for (var i = 0; i < str.length; i++) {
-		if ( str[i] === character ) {
-			str.splice(i,1);
-			// console.log("removeOneCharFromString return:",str.join(""));
-			return str.join("");
-		}
-	}
-	// console.log("removeOneCharFromString return:",str.join(""));
-	return str.join("");
-}
-
-//removes characters from the string on at a time or returns original string
-function removeCharactersFromString(characters,str){
-	// console.log("removeCharactersFromString str:",str,"characters",characters);
-	characters = characters.split("");
-	for (var i = 0; i < characters.length; i++) {
-		str = removeOneCharFromString(str,characters[i]);
-		// console.log("removeCharactersFromString return:",str);
-	}
-	return str;
-}
-
 // remove spaces,  sort and return characters as string 
 function sortChars(str){
 	return str.replace(/\s/g,"").split("").sort().join("");
@@ -210,17 +265,6 @@ function removeDuplicates(list){
 		return curr;
 	},"");
 	return result;
-}
-
-//prepare regex /[^ailnoprstuwy]/g from letters 'ailnooprssttttuuwy'
-function regEx(ltrs){
-	var arr = ltrs.split("");
-	var str = "";
-	arr.reduce(function(prev,curr,index,array){
-		if(prev!==curr) str += array[index];
-		return curr;
-	},"");
-	return new RegExp("^[" + str + "]+$");
 }
 
 //remove letters which are non-words from list like bcdefghjklmnopqrstuvwxyz (not a or i)
@@ -239,50 +283,6 @@ function removeOnlyTheseLetters(list, ltrs){
 		if (!match) vocab.push(el);
 	});
 	return vocab;
-}
-
-//create an array of all anagram words from the string
-//reduce vocabulary by removing words with illegal letters or too many letters
-function removeWordsWithNonAnagramChars(list, str){
-	var vocab = [], 
-		chars = sortChars(str),
-		charsObj = stringInventory(chars);
-	var allowedCharsArray = removeDuplicates(chars.split(""));
-	// console.log("allowedChars ",allowedCharsArray);
-	// console.log("start vocab count:",vocab.length)
-
-	list.forEach(function(vocabWord,index,listArray){
-		//if word has only allowedChars <-- do this fist for speed
-		if(vocabWord.match(regEx(chars))) {			
-			//if word has no more than allowable characters.
-			var vocabWordObj = stringInventory(vocabWord);
-			if(subsetOf(charsObj.inventory,vocabWordObj.inventory)){
-				vocab.push(vocabWord);
-			}			
-		}
-		
-	});
-	// console.log(vocab);
-	return vocab;
-}
-
-//compares keys of string's inventory to set's inventory
-//returns false if key inventory is greater
-function subsetOf(set,str){
-	for(var key in str){
-		if ( str[key] > set[key] ) return false;
-	}
-	return true;
-}
-
-//return an object with keys of the word and it's letters count
-function stringInventory(str){
-	var result = { string: str , inventory: {} };
-	str = sortChars(str);
-	str.split("").forEach(function(el,index,array){
-		result.inventory[el] = str.match(new RegExp(el, "g") || []).length;
-	});
-	return result;
 }
 
 //check if phrase is an anagram, pass only alphabet strings (no spaces etc.)
