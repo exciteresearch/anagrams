@@ -29,7 +29,7 @@ var wordlist = [], vocabulary = [];
 var startTimeInMs = Date.now();
 //import wordlist "./wordlist"
 fs = require('fs');
-fs.readFile('./wordlist', 'utf8', function (err, data) {
+fs.readFile('./iWordlist', 'utf8', function (err, data) {
 	// console log fs error
 	if (err) {
 		return console.log("fs error",err);
@@ -57,7 +57,7 @@ fs.readFile('./wordlist', 'utf8', function (err, data) {
 										,anagramsArray
 									);
 		// push anagram to tries array
-		// console.log((Date.now() - startTimeInMs )," tempTrie: ", JSON.stringify(tempTrie));
+		console.log((Date.now() - startTimeInMs )," tempTrie: ", JSON.stringify(tempTrie));
 	});
 
 	console.log("anagramsArray count: ",anagramsArray.length);
@@ -131,11 +131,11 @@ function subsetOf(set,str){
 
 //removes characters from the string on at a time or returns original string
 function removeCharactersFromString(characters,str){
-	console.log("removeCharactersFromString str:",str,"characters",characters);
+	// console.log("removeCharactersFromString str:",str,"characters",characters);
 	characters = characters.split("");
 	for (var i = 0; i < characters.length; i++) {
 		str = removeOneCharFromString(str,characters[i]);
-		console.log("removeCharactersFromString return:",str);
+		// console.log("removeCharactersFromString return:",str);
 	}
 	return str;
 }
@@ -146,11 +146,11 @@ function removeOneCharFromString(str,character){
 	for (var i = 0; i < str.length; i++) {
 		if ( str[i] === character ) {
 			str.splice(i,1);
-			console.log("removeOneCharFromString return:",str.join(""));
+			// console.log("removeOneCharFromString return:",str.join(""));
 			return str.join("");
 		}
 	}
-	console.log("removeOneCharFromString return:",str.join(""));
+	// console.log("removeOneCharFromString return:",str.join(""));
 	return str.join("");
 }
 
@@ -167,7 +167,7 @@ function traverseTrieNodes(node,newPhrase,phraseArray,MD5Checksum){
 	if ( node.remainingChars === "" ) { // node.children.length <= 0 && 
 		//check newPhrase.trim MD5 for match
 		newPhrase = newPhrase.trim();
-		if (  checkMD5(newPhrase,MD5Checksum) ) console.log("MD5 checksum matched: ",newPhrase);
+		if (  checkMD5(newPhrase,MD5Checksum) ) console.log("traverseTrieNodes MD5 checksum matched: ",newPhrase);
 		phraseArray.push(newPhrase);
 	} else if ( node.children.length <= 0 ) {
 		// do nothing
@@ -216,7 +216,7 @@ function makeAndTestNode(word,ltrs,list,newPhrase,MD5Checksum,anagramsArray){
 		if (  checkMD5(newPhrase,MD5Checksum) ) console.log((Date.now() - startTimeInMs )," makeAndTestNode MD5 checksum matched: ",newPhrase);
 		// anagramsArray.push(newPhrase);
 		// console.log("return node because node.remainingChars.length:",node.remainingChars.length);
-		console.log((Date.now() - startTimeInMs )," newPhrase: ", newPhrase);
+		console.log((Date.now() - startTimeInMs )," makeAndTestNode newPhrase: ", newPhrase);
 		node.children = [];
 		return node;
 	} else {
