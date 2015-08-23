@@ -19,11 +19,8 @@ var md5 = require('md5');
 //declarations
 // var phraseHash = "4624d200580677270a54ccff86b9610e";
 // var phrase = "poultry outwits ants";
-// var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
-// var phrase = "young lad";
-var phraseHash = "292d519bfbffa94538f255bca6a3bff6";
-var phrase = "disc";
-
+var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
+var phrase = "young lad";
 var nonWordSingleCharacters = "bcdefghjklmnopqrstuvwxyz";
 var letters = sortChars(phrase);
 console.log("phrase: ",phrase);
@@ -32,7 +29,7 @@ var wordlist = [], vocabulary = [];
 var startTimeInMs = Date.now();
 //import wordlist "./wordlist"
 fs = require('fs');
-fs.readFile('./wordlist', 'utf8', function (err, data) {
+fs.readFile('./iWordlist', 'utf8', function (err, data) {
 	// console log fs error
 	if (err) {
 		return console.log("fs error",err);
@@ -45,6 +42,7 @@ fs.readFile('./wordlist', 'utf8', function (err, data) {
 	if (wordlist[wordlist.length-1]==="") wordlist.pop();
 
 	vocabulary = removeWordsWithNonAnagramChars(wordlist,phrase);
+
 	console.log("parsed vocabulary: ",vocabulary.length);
 	console.log("vocabulary: ",vocabulary);
 	//build tries of all word permutations
@@ -107,11 +105,10 @@ function removeWordsWithNonAnagramChars(list, str){
 	var allowedCharsArray = removeDuplicates(chars.split(""));
 
 	list.forEach(function(vocabWord,index,listArray){
+		
 		//remove carraige return from each vocabWord
-		vocabWord = vocabWord.slice(0,vocabWord.length-1);
-		//if word has only allowedChars <-- do this first for speed
-		if(vocabWord==="cd"||vocabWord==="is") { 
-			console.log("vocabWord.match(regEx(chars))===",vocabWord.match(regEx(chars)))
+		if(vocabWord[vocabWord.length-1]==="\r"||vocabWord[vocabWord.length-1]==="\n"){
+			vocabWord = vocabWord.slice(0,vocabWord.length-1);
 		}
 
 		if(vocabWord.match(regEx(chars))) {	
