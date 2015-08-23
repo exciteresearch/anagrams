@@ -19,8 +19,11 @@ var md5 = require('md5');
 //declarations
 // var phraseHash = "4624d200580677270a54ccff86b9610e";
 // var phrase = "poultry outwits ants";
-var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
-var phrase = "young lad";
+// var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
+// var phrase = "young lad";
+var phraseHash = "292d519bfbffa94538f255bca6a3bff6";
+var phrase = "disc";
+
 var nonWordSingleCharacters = "bcdefghjklmnopqrstuvwxyz";
 var letters = sortChars(phrase);
 console.log("phrase: ",phrase);
@@ -29,7 +32,7 @@ var wordlist = [], vocabulary = [];
 var startTimeInMs = Date.now();
 //import wordlist "./wordlist"
 fs = require('fs');
-fs.readFile('./iWordlist', 'utf8', function (err, data) {
+fs.readFile('./wordlist', 'utf8', function (err, data) {
 	// console log fs error
 	if (err) {
 		return console.log("fs error",err);
@@ -106,7 +109,11 @@ function removeWordsWithNonAnagramChars(list, str){
 	list.forEach(function(vocabWord,index,listArray){
 		//remove carraige return from each vocabWord
 		vocabWord = vocabWord.slice(0,vocabWord.length-1);
-		//if word has only allowedChars <-- do this fist for speed
+		//if word has only allowedChars <-- do this first for speed
+		if(vocabWord==="cd"||vocabWord==="is") { 
+			console.log("vocabWord.match(regEx(chars))===",vocabWord.match(regEx(chars)))
+		}
+
 		if(vocabWord.match(regEx(chars))) {	
 			//if word has no more than allowable characters.
 			var vocabWordObj = stringInventory(vocabWord);
