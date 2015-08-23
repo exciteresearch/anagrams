@@ -107,7 +107,7 @@ function removeWordsWithNonAnagramChars(list, str){
 	list.forEach(function(vocabWord,index,listArray){
 		
 		//remove carraige return from each vocabWord
-		if(vocabWord[vocabWord.length-1]==="\r"){
+		if(vocabWord[vocabWord.length-1]==="\r"||vocabWord[vocabWord.length-1]==="\n"){
 			vocabWord = vocabWord.slice(0,vocabWord.length-1);
 		}
 
@@ -217,9 +217,7 @@ function makeAndTestNode(word,ltrs,list,newPhrase,MD5Checksum,anagramsArray){
 	if(node.remainingChars == "") {
 		newPhrase = newPhrase.trim();
 		// console.log("makeAndTestNode newPhrase",newPhrase);
-		if ( checkMD5(newPhrase,MD5Checksum) ) {
-			console.log((Date.now() - startTimeInMs)," makeAndTestNode MD5 checksum matched: ",newPhrase);
-		}
+		if (  checkMD5(newPhrase,MD5Checksum) ) console.log((Date.now() - startTimeInMs )," makeAndTestNode MD5 checksum matched: ",newPhrase);
 		// anagramsArray.push(newPhrase);
 		// console.log("return node because node.remainingChars.length:",node.remainingChars.length);
 		console.log((Date.now() - startTimeInMs )," makeAndTestNode newPhrase: ", newPhrase);
