@@ -42,6 +42,7 @@ fs.readFile('./iWordlist', 'utf8', function (err, data) {
 	if (wordlist[wordlist.length-1]==="") wordlist.pop();
 
 	vocabulary = removeWordsWithNonAnagramChars(wordlist,phrase);
+
 	console.log("parsed vocabulary: ",vocabulary.length);
 	console.log("vocabulary: ",vocabulary);
 	//build tries of all word permutations
@@ -104,9 +105,12 @@ function removeWordsWithNonAnagramChars(list, str){
 	var allowedCharsArray = removeDuplicates(chars.split(""));
 
 	list.forEach(function(vocabWord,index,listArray){
+		
 		//remove carraige return from each vocabWord
-		vocabWord = vocabWord.slice(0,vocabWord.length-1);
-		//if word has only allowedChars <-- do this fist for speed
+		if(vocabWord[vocabWord.length-1]==="\r"){
+			vocabWord = vocabWord.slice(0,vocabWord.length-1);
+		}
+
 		if(vocabWord.match(regEx(chars))) {	
 			//if word has no more than allowable characters.
 			var vocabWordObj = stringInventory(vocabWord);
@@ -213,7 +217,9 @@ function makeAndTestNode(word,ltrs,list,newPhrase,MD5Checksum,anagramsArray){
 	if(node.remainingChars == "") {
 		newPhrase = newPhrase.trim();
 		// console.log("makeAndTestNode newPhrase",newPhrase);
-		if (  checkMD5(newPhrase,MD5Checksum) ) console.log((Date.now() - startTimeInMs )," makeAndTestNode MD5 checksum matched: ",newPhrase);
+		if ( checkMD5(newPhrase,MD5Checksum) ) {
+			console.log((Date.now() - startTimeInMs)," makeAndTestNode MD5 checksum matched: ",newPhrase);
+		}
 		// anagramsArray.push(newPhrase);
 		// console.log("return node because node.remainingChars.length:",node.remainingChars.length);
 		console.log((Date.now() - startTimeInMs )," makeAndTestNode newPhrase: ", newPhrase);
