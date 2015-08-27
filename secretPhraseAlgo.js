@@ -108,10 +108,6 @@ function removeWordsWithNonAnagramChars(list, str){
 
 	list.forEach(function(vocabWord,index,listArray){
 		
-		//remove carraige return from each vocabWord
-		if(vocabWord[vocabWord.length-1]==="\r"||vocabWord[vocabWord.length-1]==="\n"){
-			vocabWord = vocabWord.slice(0,vocabWord.length-1);
-		}
 
 		//do not do duplicates
 
@@ -277,20 +273,36 @@ function removeDuplicates(list){
 
 //remove letters which are non-words from list like bcdefghjklmnopqrstuvwxyz (not a or i)
 function removeOnlyTheseLetters(list, ltrs){
+
 	var vocab = [];
+
 	ltrs = ltrs.split("");
 
-	list.forEach(function(el){
+	for(var j=0;j<list.length;j++){
+
+		//remove carraige return from each vocabWord
+		if(list[j][list[j].length-1]==="\r"||list[j][list[j].length-1]==="\n"){
+			list[j] = list[j].slice(0,list[j].length-1);
+		}
+		
 		var match = false;
+		
 		for(var i=0;i<ltrs.length;i++){
-			if(el===ltrs[i])	{
+			if(list[j]===ltrs[i])	{
 				match = true;
 				continue;
 			}
 		}
-		if (!match) vocab.push(el);
-	});
+
+		if (!match) {
+			match = false;
+			vocab.push(list[j]);
+		}
+
+	}
+
 	return vocab;
+
 }
 
 //check if phrase is an anagram, pass only alphabet strings (no spaces etc.)
