@@ -14,41 +14,77 @@
 // "poultry outwits ants" => ???? ("4624d200580677270a54ccff86b9610e"); 18 characters
 // Current Bug Javascript FATAL ERROR: CALL_AND_RETRY_LAST allocation failed - process out of memory
 
-//imports
-var md5 = require('md5');
-//declarations
-var phraseHash = "4624d200580677270a54ccff86b9610e";
-var phrase = "poultry outwits ants";
-// var phrase = "disc" ;
-// var phraseHash = "292d519bfbffa94538f255bca6a3bff6";
-// var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
-// var phrase = "young lad";
-var nonWordSingleCharacters = "bcdefghjklmnopqrstuvwxyz";
-var letters = sortChars(phrase);
-console.log("phrase: ",phrase);
-var wordlist = [], vocabulary = [];
 //time anagram / tries generation
 var startTimeInMs = Date.now();
+
+//imports
+var md5 = require('md5');
+var Promise = require('bluebird');
+var fs = Promise.promisifyAll(require('fs'));
+
+//declarations
+// var phraseHash = "4624d200580677270a54ccff86b9610e";
+// var phrase = "poultry outwits ants";
+// var phrase = "disc" ;
+// var phraseHash = "292d519bfbffa94538f255bca6a3bff6";
+var phraseHash = "e38510d49aac47d5cb7d47155b9bce6f";
+var phrase = "young lad";
+
+var letters = sortChars(phrase);
+
+
 //import wordlist "./wordlist"
-fs = require('fs');
-fs.readFile('./wordlist', 'utf8', function (err, data) {
-	// console log fs error
-	if (err) {
-		return console.log("fs error",err);
+// var readFileAsync = Promise.promisify(fs.readFile);
+var fileName = './wordlist';
+
+main();
+
+function main(){
+	// console.log(Promise.promisify.toString());
+	// console.log(fs.readFile.toString());
+	console.log(fileName)
+	var wordlist = returnFileDataPromise(fileName);
+	wordlist.then(function(list){
+		generateMatchingAnagram(list,phrase,phraseHash);
+	});
+}
+
+function returnFileDataPromise(fileName){
+	return fs.readFileAsync(fileName, 'utf8')
+	.then(fileDataToWordlist)
+    .then(removeDuplicates)
+	.catch(function(err){
+		console.log("fs error",err);
+	});
+}
+
+function fileDataToWordlist(fileData){
+	var wordlist = fileData.split('\n');		
+	if (wordlist[wordlist.length-1]==="") {
+		console.log(wordlist.pop());
 	}
+	console.log("wordlist length:", wordlist.length);
+    return wordlist;
+}
 
+function generateMatchingAnagram(wordlist,phrase,MD5str){
+	console.log("phrase: ",phrase);
+
+	var result = null;
+	var lexicon = [];
+	var nonWordSingleCharacters = "bcdefghjklmnopqrstuvwxyz";
 	//clean wordlist of duplicates, non-words letters and words with non anagram characters
-	wordlist = removeOnlyTheseLetters(removeDuplicates(data.split('\n')),nonWordSingleCharacters);
-
+	lexicon = removeOnlyTheseLetters(wordlist,nonWordSingleCharacters);
 	//pop last line with empty string
-	if (wordlist[wordlist.length-1]==="") wordlist.pop();
+	
+	//cull list to only include words with allowed characters from phrase
+	lexicon = removeWordsWithNonAnagramChars(lexicon,phrase);
 
-	vocabulary = removeWordsWithNonAnagramChars(wordlist,phrase);
+	console.log("parsed vocabulary: ",lexicon.length);
+	console.log("vocabulary: ",lexicon);
 
-	console.log("parsed vocabulary: ",vocabulary.length);
-	console.log("vocabulary: ",vocabulary);
 	//build tries of all word permutations
-	var tempArray = vocabulary.slice(), anagramsTriesArray = [], anagramsArray = [];
+	var tempArray = lexicon.slice(), anagramsTriesArray = [], anagramsArray = [];
 	tempArray.forEach(function(root,index,array){
 		// make anagrams tries array and test if phrase is anagram and if it matches the MD5Checksum
 		var tempTrie = makeAndTestNode(
@@ -63,19 +99,54 @@ fs.readFile('./wordlist', 'utf8', function (err, data) {
 		// console.log((Date.now() - startTimeInMs )," tempTrie: ", JSON.stringify(tempTrie));
 	});
 
-	console.log("anagramsArray count: ",anagramsArray.length);
-	console.log("anagramsArray: ",anagramsArray);
-/*
-	tempArray = []; 
-	var count = 0;
-	while ( anagramsTriesArray.length>0 ) {
-		count++;
-		var tempNode = anagramsTriesArray.shift();
-		traverseTrieNodes(tempNode,"",tempArray,phraseHash);
-	}
-*/
+	return result;
+}
 
-});
+// fs.readFile('./wordlist', 'utf8', function (err, data) {
+// 	// console log fs error
+// 	if (err) {
+// 		return console.log("fs error",err);
+// 	}
+
+// 	//clean wordlist of duplicates, non-words letters and words with non anagram characters
+// 	wordlist = removeOnlyTheseLetters(removeDuplicates(data.split('\n')),nonWordSingleCharacters);
+
+// 	//pop last line with empty string
+// 	if (wordlist[wordlist.length-1]==="") wordlist.pop();
+
+// 	vocabulary = removeWordsWithNonAnagramChars(wordlist,phrase);
+
+// 	console.log("parsed vocabulary: ",vocabulary.length);
+// 	console.log("vocabulary: ",vocabulary);
+// 	//build tries of all word permutations
+// 	var tempArray = vocabulary.slice(), anagramsTriesArray = [], anagramsArray = [];
+// 	tempArray.forEach(function(root,index,array){
+// 		// make anagrams tries array and test if phrase is anagram and if it matches the MD5Checksum
+// 		var tempTrie = makeAndTestNode(
+// 										root,
+// 										removeCharactersFromString(root,letters),
+// 										array.slice(),
+// 										"",
+// 										phraseHash
+// 										,anagramsArray
+// 									);
+// 		// push anagram to tries array
+// 		// console.log((Date.now() - startTimeInMs )," tempTrie: ", JSON.stringify(tempTrie));
+// 	});
+
+// 	console.log("anagramsArray count: ",anagramsArray.length);
+// 	console.log("anagramsArray: ",anagramsArray);
+// /*
+// 	tempArray = []; 
+// 	var count = 0;
+// 	while ( anagramsTriesArray.length>0 ) {
+// 		count++;
+// 		var tempNode = anagramsTriesArray.shift();
+// 		traverseTrieNodes(tempNode,"",tempArray,phraseHash);
+// 	}
+// */
+
+// });
 
 //prepare regex /[^ailnoprstuwy]/g from letters 'ailnooprssttttuuwy'
 function regEx(ltrs){
@@ -217,10 +288,10 @@ function makeAndTestNode(word,ltrs,list,newPhrase,MD5Checksum,anagramsArray){
 	if(node.remainingChars == "") {
 		newPhrase = newPhrase.trim();
 		// console.log("makeAndTestNode newPhrase",newPhrase);
-		if (  checkMD5(newPhrase,MD5Checksum) ) console.log((Date.now() - startTimeInMs )," makeAndTestNode MD5 checksum matched: ",newPhrase);
+		if ( checkMD5(newPhrase,MD5Checksum) ) console.log((Date.now() - startTimeInMs )," makeAndTestNode MD5 checksum matched: ",newPhrase);
 		// anagramsArray.push(newPhrase);
 		// console.log("return node because node.remainingChars.length:",node.remainingChars.length);
-		console.log((Date.now() - startTimeInMs )," makeAndTestNode newPhrase: ", newPhrase);
+		// console.log((Date.now() - startTimeInMs )," makeAndTestNode newPhrase: ", newPhrase);
 		node.children = [];
 		return node;
 	} else {
@@ -268,6 +339,7 @@ function removeDuplicates(list){
 		if(prev!==curr) result.push(array[index]);
 		return curr;
 	},"");
+	console.log("result length:", result.length);
 	return result;
 }
 
