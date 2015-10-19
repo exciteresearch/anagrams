@@ -283,12 +283,14 @@ function removeOnlyTheseLetters(list, ltrs){
 	list.forEach(function(el){
 		var match = false;
 		for(var i=0;i<ltrs.length;i++){
-			if(el===ltrs[i])	{
+			if(el==ltrs[i]){
 				match = true;
-				continue;
+				break;
 			}
 		}
-		if (!match) vocab.push(el);
+		if(!match) {
+			vocab.push(el);
+		}
 	});
 	return vocab;
 }
